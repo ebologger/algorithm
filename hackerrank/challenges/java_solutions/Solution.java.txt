@@ -1,0 +1,135 @@
+import java.io.*;
+import java.util.*;
+import java.text.*;
+import java.math.*;
+import java.util.regex.*;
+
+public class Solution {
+    
+    public static final int MAX_LENGTH = 17;
+    public static final int MAX_SUM = MAX_LENGTH * 9;
+    public static final int MAX_SQUARE = MAX_LENGTH * 9 * 9;
+
+    public static int[] primes_array = new int[MAX_SQUARE+1];
+    public static int[] primes = new int[MAX_SQUARE+1];
+    
+    public static long[][][] dyn_table = new long[MAX_LENGTH + 1][MAX_SUM + 1 ][MAX_SQUARE + 1];
+    
+    public static void main(String[] args) throws Exception {
+        fillPrime();
+        fillDynTable();
+               
+        BufferedReader bi = new BufferedReader(new InputStreamReader(System.in));
+        int t = Integer.parseInt(bi.readLine());
+        for(int i=0; i<t; i++){
+            String line[] = bi.readLine().split(" ");
+            long a = Long.parseLong(line[0]);
+            
+            if (line[1].equals("1000000000000000000")){
+                line[1] = "999999999999999999";
+            }
+            long b = Long.parseLong(line[1]);
+            
+            System.out.println(countLuckyNumber(b) - countLuckyNumber(a-1));
+        }
+    }
+    
+    
+    public static long countLuckyNumber(long max){
+        long count = 0;
+        
+        int[] digits = split(max);
+        
+        System.out.println(max);
+        
+        for(int i=0; i <= MAX_SQUARE; i++){
+            if(primes[i] != 0){
+                for(int j=i; j <= MAX_SQUARE; j++){
+                    if(primes[j] != 0){
+                        int sum = 0;
+                        int sumSquare = 0;
+                        
+                        for(int idx=0; idx<digits.length-1; idx++){
+                            int d = digits[idx];
+                            for(int k=0; k<d; k++){
+                                try{
+                                count += dyn_table[digits.length - idx - 1][primes[i]-sum-k][primes[j]-sumSquare-k*k];
+                                }catch(Exception ex){}
+                            }
+                            sum += d;
+                            sumSquare += d*d;
+                        }
+                    }else{
+                        break;
+                    }
+                }
+            }else{
+                break;
+            }
+        }
+        
+        int sum = 0;
+        int sumSquare = 0;
+        for(int i=0; i<digits.length-1;i++){
+            int d = digits[i];
+            sum += d;
+            sumSquare += d*d;
+        }
+        
+        int d=digits[digits.length-1];
+        for(int i=0; i<=d; i++){
+            if(primes_array[i+sum] == 1 && primes_array[i*i+sumSquare] == 1){
+                count++;
+            }
+        }
+        
+        return count;
+    }
+    
+    public static void fillPrime(){
+        Arrays.fill(primes_array, 1);
+        primes_array[0] = primes_array[1] = 0;
+        for(int i=2; i*i <= MAX_SQUARE; i++){
+            if(primes_array[i] == 1){
+                for(int j=2; i*j <= MAX_SQUARE; j++){
+                    primes_array[j*i] = 0;
+                }
+            }
+        }
+
+        int idx = 0;
+        for(int i=2; i <= MAX_SQUARE; i++){
+            if(primes_array[i] == 1){
+                primes[idx++] = i;
+            }
+        }
+    }
+    
+    public static void fillDynTable(){
+               
+        dyn_table[0][0][0] = 1;
+        
+        for(int i = 0; i<MAX_LENGTH - 1; i++){
+            for(int j=0; j<= i*9; j++){
+                for(int k=j; k<= i*9*9; k++){
+                    for(int l=0; l<=9; l++){
+                        dyn_table[i+1][j+l][k+l*l] += dyn_table[i][j][k];
+                    }
+                }
+            }
+        }        
+    }
+    
+    public static int[] split(long number){
+        int length = String.valueOf(number).length();
+        int[] digits = new int[length];
+        for(int i=0; i<length; i++){
+            int d = (int) number % 10;
+            digits[length-i-1] = d;
+            number = number / 10;
+        }
+        return digits;
+    }
+    
+    
+}
