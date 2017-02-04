@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.*;
 
 public class Main {
@@ -9,61 +10,131 @@ public class Main {
         int T = scanner.nextInt();
         while (T-- > 0) {
             int N = scanner.nextInt();
-            int K = scanner.nextInt();
-            long[] A = new long[N];
+            int Q = scanner.nextInt();
+            long P = scanner.nextLong();
+
+            int[] A = new int[N];
             for(int i=0; i<N; i++)
-                A[i] = scanner.nextLong();
+                A[i] = scanner.nextInt();
 
-            solve(N,K,A);
+            SegmentTree st = new SegmentTree(A, N, P);
+            //System.out.println(Arrays.toString(st.st));
 
+            for(int i=0; i<Q; i++){
+                int operation = scanner.nextInt();
+                if(operation == 1){
+                    int X = scanner.nextInt() - 1;
+                    int Y = scanner.nextInt();
+                    st.update(N,X,Y);
+                    //System.out.println(Arrays.toString(st.st));
+
+                }else{
+                    int L = scanner.nextInt() - 1;
+                    int R = scanner.nextInt() - 1;
+
+                    long prod = st.query(N,L,R);
+                    //System.out.println(prod);
+                    long[] res = lagrange(prod);
+                    //System.out.println("0 0 0 0");
+
+                    if(res == null)
+                        System.out.println(-1);
+                    else
+                        System.out.println(res[0] + " " + res[1] + " " + res[2] + " " + res[3]);
+                }
+            }
         }
     }
 
-    public static int  solveBrute(int N, int K, long[] A){
-        return -1;
+    public static long[] lagrange(long n){
+        for (long a = 0, na = n; a * a <= na; a++) {
+            for (long b = a, nb = na - a * a; b * b <= nb; b++) {
+                for (long c = b, nc = nb - b * b; c * c <= nc; c++) {
+                    long nd = nc - c * c;
+                    Double dd = Math.sqrt(nd);
+                    long d = dd.longValue();
+                    if (d * d == nd) {
+                        return new long[]{a,b,c,d};
+                    }
+                }
+            }
+        }
+        return null;
+    }
+}
+
+class SegmentTree {
+    int[] arr;
+    long[] st; // segment tree
+    long P;
+    BigInteger bigIntP;
+
+    SegmentTree(int arr[], int n, long P) {
+        int x = (int) (Math.ceil(Math.log(n) / Math.log(2)));
+        int max_size = 2 * (int) Math.pow(2, x) - 1;
+        this.P = P;
+        bigIntP = BigInteger.valueOf(P);
+        st = new long[max_size];
+        this.arr = arr;
+        constructTree(arr, 0, 0, n - 1);
     }
 
-    public static int  solve(int N, int K, long[] A){
-        Arrays.sort(A);
-        Map<Long, Integer> map1 = new HashMap<>();
-        Map<Integer, List<Long>> map2 = new TreeMap<Integer, List<Long>>(Collections.reverseOrder());
+    void update(int n, int X, int Y) {
+        //BigInteger bigIntX = BigInteger.valueOf(arr[X]);
+        //Long inverse = bigIntX.modInverse(bigIntP).longValue() % P;
+        //update(0, 0, n - 1, inverse, X, Y);
+        arr[X] = Y;
+        constructTree(arr, 0, 0, n - 1);
+    }
 
-        int bouquetCnt = N / K;
 
-        int cnt = 0;
-        long curr = -1;
-        for(int i=0; i<N; ){
-            if(curr < 0)
-                curr = A[i];
 
-            while(i<N && curr == A[i]) {
-                i++;
-                cnt++;
-            }
-
-            bouquetCnt -= cnt / K;
-            cnt %= K;
-
-            map1.put(A[i-1], cnt % K);
-            List<Long> cnts = map2.getOrDefault(cnt, new LinkedList<>());
-            cnts.add(cnt, A[i-1]);
-            map2.put(cnt, cnts);
-
-            cnt = 0;
-            curr = -1;
+    private void update(int si, int ss, int se, Long inverse, int X, int Y) {
+        if (X < ss || X > se)
+            return;
+        if(Y % arr[X] == 0){
+            st[si] = (st[si] * (Y/arr[X]) ) % P;
+        }else{
+            st[si] = (st[si] * inverse) % P;
+            st[si] = (st[si] * Y) % P;
         }
 
-        for(Integer i : map2.keySet()){
-            for(Long l : map2.get(i)){
-                
-            }
+        if (se != ss) {
+            int mid = getMid(ss, se);
+            update(2 * si + 1, ss, mid, inverse, X, Y);
+            update(2 * si + 2, mid + 1, se, inverse, X, Y);
+        }
+    }
+
+    long query(int n, int L, int R) {
+        return query(0, 0, n - 1, L, R);
+    }
+
+    private long query(int si, int ss, int se, int L, int R) {
+        if (ss > se || ss > R || se < L)
+            return 1;
+
+        if (ss >= L && se <= R)
+            return st[si];
+
+        int mid = (ss + se) / 2;
+        return (query(2 * si + 1, ss, mid, L, R) *
+                query(2 * si + 2, mid + 1, se, L, R)) % P;
+    }
+
+    private long constructTree(int arr[], int si, int ss, int se) {
+        if (ss == se) {
+            st[si] = arr[ss];
+            return st[si];
         }
 
+        int mid = getMid(ss, se);
+        st[si] = (constructTree(arr, si * 2 + 1, ss, mid) * constructTree(arr, si * 2 + 2, mid + 1, se)) % P ;
+        return st[si];
+    }
 
-
-
-
-        return -1;
+    private static int getMid(int s, int e) {
+        return s + (e - s) / 2;
     }
 
 }
