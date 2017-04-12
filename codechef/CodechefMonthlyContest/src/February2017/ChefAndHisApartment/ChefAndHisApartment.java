@@ -1,59 +1,40 @@
+package February2017.ChefAndHisApartment;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.InputMismatchException;
 
-public class Main {
+/**
+ * Created by enkhbold on 2/4/17.
+ */
+public class ChefAndHisApartment {
 
-    private final static double log2 = Math.log(2);
-    private static double[] logs = new double[1000001];
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         FasterScanner scanner = new FasterScanner();
         int T = scanner.nextInt();
         while (T-- > 0) {
             int N = scanner.nextInt();
-            int M = scanner.nextInt();
-            int P = scanner.nextInt();
-            int K = scanner.nextInt();
 
-            boolean canChefWonGame1 = canChefWon(N, M, 0);
-            boolean canChefWonGame2 = canChefWon(N, M, 1);
+            int totalDue = 0;
+            boolean onTime = true;
 
-            if(P == 0 || canChefWonGame1 && canChefWonGame2)
-                System.out.println("1.000000");
-            else if(!canChefWonGame1 && !canChefWonGame2)
-                System.out.println("0.000000");
-            else{
-                System.out.printf ("%.6f%n", solve(P, K));
+            for(int i=0; i<N; i++) {
+                int paid = scanner.nextInt();
+                if(paid == 0){
+                    if(onTime)
+                        onTime = false;
+
+                    totalDue += 1000;
+                }
+                if(!onTime){
+                    totalDue += 100;
+                }
             }
+
+            System.out.println(totalDue);
+
+
         }
-    }
-
-    public static double solve(int P, int K){
-        double res = 0;
-
-        double tmp  =0;
-        tmp -= K * log2;
-        res += Math.exp(tmp);
-
-        for(int i = 1; i<P; i++){
-            tmp -= log(i);
-            tmp += log(K - i + 1);
-            res += Math.exp(tmp);
-        }
-        return 1 - res;
-    }
-
-    public static double log(int x){
-        if(logs[x] > 0)
-            return logs[x];
-
-        logs[x] = Math.log(x);
-        return logs[x];
-    }
-
-    public static boolean canChefWon(int N, int M, int rule){
-        return rule == 0 && (N % 2 == 0 || M % 2 == 0) || rule == 1 && (N % 2 == 0 && M % 2 == 0);
     }
 }
 

@@ -1,8 +1,13 @@
+package February2017.ChefAndYoda;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.InputMismatchException;
 
-public class Main {
+/**
+ * Created by enkhbold on 2/15/17.
+ */
+public class ChefAndYoda {
 
     private final static double log2 = Math.log(2);
     private static double[] logs = new double[1000001];

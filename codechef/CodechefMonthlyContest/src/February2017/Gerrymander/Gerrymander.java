@@ -1,59 +1,55 @@
+package February2017.Gerrymander;
+
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.io.OutputStream;
+import java.util.InputMismatchException;
 
-public class Main {
-
-    private final static double log2 = Math.log(2);
-    private static double[] logs = new double[1000001];
+/**
+ * Created by enkhbold on 2/11/17.
+ */
+public class Gerrymander {
 
     public static void main(String[] args) throws IOException {
         FasterScanner scanner = new FasterScanner();
         int T = scanner.nextInt();
+        OutputStream out = new BufferedOutputStream( System.out );
         while (T-- > 0) {
-            int N = scanner.nextInt();
-            int M = scanner.nextInt();
-            int P = scanner.nextInt();
-            int K = scanner.nextInt();
+            int o1 = scanner.nextInt();
+            int o2 = scanner.nextInt();
+            int N = o1*o2;
+            int[] d = new int[N];
+            for(int i=0; i<N; i++)
+                d[i] = scanner.nextInt();
 
-            boolean canChefWonGame1 = canChefWon(N, M, 0);
-            boolean canChefWonGame2 = canChefWon(N, M, 1);
+            int[] cnts = new int[o2];
 
-            if(P == 0 || canChefWonGame1 && canChefWonGame2)
-                System.out.println("1.000000");
-            else if(!canChefWonGame1 && !canChefWonGame2)
-                System.out.println("0.000000");
-            else{
-                System.out.printf ("%.6f%n", solve(P, K));
+            int solution = 0;
+
+            int cnt = 0;
+            for(int i=0; i<o2; i++)
+                cnt += d[i];
+
+            if(cnt > o2 / 2)
+                cnts[0]++;
+
+            for(int start=1, end=o2; start<N; start++, end++){
+                end = end % N;
+                cnt -= d[start-1];
+                cnt += d[end];
+                if(cnt > o2 / 2) {
+                    cnts[start % o2]++;
+                    if(cnts[start % o2] > o1 / 2){
+                        solution = 1;
+                        break;
+                    }
+                }
             }
+
+            out.write((solution + "\n").getBytes());
         }
-    }
-
-    public static double solve(int P, int K){
-        double res = 0;
-
-        double tmp  =0;
-        tmp -= K * log2;
-        res += Math.exp(tmp);
-
-        for(int i = 1; i<P; i++){
-            tmp -= log(i);
-            tmp += log(K - i + 1);
-            res += Math.exp(tmp);
-        }
-        return 1 - res;
-    }
-
-    public static double log(int x){
-        if(logs[x] > 0)
-            return logs[x];
-
-        logs[x] = Math.log(x);
-        return logs[x];
-    }
-
-    public static boolean canChefWon(int N, int M, int rule){
-        return rule == 0 && (N % 2 == 0 || M % 2 == 0) || rule == 1 && (N % 2 == 0 && M % 2 == 0);
+        out.flush();
     }
 }
 

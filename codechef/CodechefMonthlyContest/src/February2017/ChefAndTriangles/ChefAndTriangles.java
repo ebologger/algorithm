@@ -1,61 +1,48 @@
+package February2017.ChefAndTriangles;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.InputMismatchException;
 
-public class Main {
+/**
+ * Created by enkhbold on 2/7/17.
+ */
+public class ChefAndTriangles {
 
-    private final static double log2 = Math.log(2);
-    private static double[] logs = new double[1000001];
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         FasterScanner scanner = new FasterScanner();
-        int T = scanner.nextInt();
-        while (T-- > 0) {
-            int N = scanner.nextInt();
-            int M = scanner.nextInt();
-            int P = scanner.nextInt();
-            int K = scanner.nextInt();
+        int N = scanner.nextInt();
+        long L = scanner.nextLong();
+        long R = scanner.nextLong();
+        long[] strands = new long[N];
 
-            boolean canChefWonGame1 = canChefWon(N, M, 0);
-            boolean canChefWonGame2 = canChefWon(N, M, 1);
+        for(int i=0; i<N; i++)
+            strands[i] = scanner.nextLong();
 
-            if(P == 0 || canChefWonGame1 && canChefWonGame2)
-                System.out.println("1.000000");
-            else if(!canChefWonGame1 && !canChefWonGame2)
-                System.out.println("0.000000");
-            else{
-                System.out.printf ("%.6f%n", solve(P, K));
-            }
+        Arrays.sort(strands);
+
+        long sol = 0;
+
+        for(int i=N-1; i>0; i--){
+            long min = strands[i] - strands[i-1] + 1;
+            long max = strands[i] + strands[i-1] - 1;
+
+            if(max < L)
+                break;
+
+            if(min > R)
+                continue;
+
+            sol += (Math.min(max,R) - Math.max(min,L) + 1);
+            R = Math.max(min,L) - 1;
         }
-    }
 
-    public static double solve(int P, int K){
-        double res = 0;
-
-        double tmp  =0;
-        tmp -= K * log2;
-        res += Math.exp(tmp);
-
-        for(int i = 1; i<P; i++){
-            tmp -= log(i);
-            tmp += log(K - i + 1);
-            res += Math.exp(tmp);
-        }
-        return 1 - res;
-    }
-
-    public static double log(int x){
-        if(logs[x] > 0)
-            return logs[x];
-
-        logs[x] = Math.log(x);
-        return logs[x];
-    }
-
-    public static boolean canChefWon(int N, int M, int rule){
-        return rule == 0 && (N % 2 == 0 || M % 2 == 0) || rule == 1 && (N % 2 == 0 && M % 2 == 0);
+        System.out.println(sol);
     }
 }
+
+
 
 class FasterScanner {
     private InputStream mIs;
